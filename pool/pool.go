@@ -8,6 +8,7 @@ import (
 	"math/rand"
 	"net"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 
@@ -480,7 +481,7 @@ func (pool *Pool) RoundTrip(req *http.Request) (res *http.Response, err error) {
 				continue
 			}
 			// when no response is returned or proxy pool is exhausted
-			if attempt < len(pool.shards) && res.StatusCode == 552 {
+			if attempt < len(pool.shards) || res.StatusCode == 552 {
 				continue
 			}
 			// if res.StatusCode == 552 && pool.pressure != nil {
@@ -491,11 +492,21 @@ func (pool *Pool) RoundTrip(req *http.Request) (res *http.Response, err error) {
 			// 	log.Warn().Stringer("t", time.Since(s)).Msg("sent pressure")
 			// }
 
-			if res.StatusCode == 552 && res.Status == "Proxy Pool Exhausted" {
-				res.Proto = res.Request.Proto
-				res.ProtoMajor = res.Request.ProtoMajor
-				res.ProtoMinor = res.Request.ProtoMinor
+			// if res.StatusCode == 552 && res.Status == "Proxy Pool Exhausted" {
+			// 	res.Proto = res.Request.Proto
+			// 	res.ProtoMajor = res.Request.ProtoMajor
+			// 	res.ProtoMinor = res.Request.ProtoMinor
+			// }
+
+			// Check if the path contains "aviad"
+			if strings.Contains(res.Request.URL.Path, "nfx") {
+				fmt.Print("aviad")
 			}
+
+			if res.StatusCode == 429 && res.Proto == "" {
+				return nil, fmt.Errorf("429: %s", res.Status)
+			}
+
 			return res, nil
 		}
 	}

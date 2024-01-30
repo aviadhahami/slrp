@@ -91,6 +91,9 @@ func (srv *HttpProxyServer) handleSimpleHttp(rw http.ResponseWriter, r *http.Req
 	log := app.Log.From(r.Context()).With().Str("connection", "HTTP").Logger()
 	log.Debug().Str("method", r.Method).Stringer("url", r.URL).Msg("init")
 	res, err := srv.transport.RoundTrip(srv.rewrapRequest(log, r.URL.Scheme, r))
+	if res.Status != "Proxy Pool Exhausted" {
+		fmt.Println("ok")
+	}
 	if err != nil {
 		log.Err(err).Msg("cannot do RoundTrip(r)")
 		http.Error(rw, err.Error(), 470)
@@ -206,6 +209,9 @@ func (srv *HttpProxyServer) handleInnerHttp(log zerolog.Logger, ssl *tls.Conn, b
 	res, err := srv.transport.RoundTrip(srv.rewrapRequest(log, "https", req))
 	if err != nil {
 		return fmt.Errorf("round trip: %w", err)
+	}
+	if res.Status != "Proxy Pool Exhausted" {
+		fmt.Println("ok")
 	}
 	if res.Body != nil {
 		defer res.Body.Close() // leak or not?..

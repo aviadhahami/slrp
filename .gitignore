@@ -21,3 +21,4 @@ slrp
 package-lock.json
 .vagrant
 *.patch
+__debug_*
