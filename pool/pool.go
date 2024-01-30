@@ -440,6 +440,7 @@ func (pool *Pool) RoundTrip(req *http.Request) (res *http.Response, err error) {
 	// get sequence number and do some throttling if needed
 	ctx := req.Context()
 	start := time.Now()
+	// Set the request's proto major and minor version to what's in the context.
 	serial := pool.nextSerial(ctx)
 	// add trace information deep to all other places
 	ctx = app.Log.WithInt(ctx, "serial", serial)
@@ -489,6 +490,12 @@ func (pool *Pool) RoundTrip(req *http.Request) (res *http.Response, err error) {
 			// 	pool.pressure <- serial // livelock....
 			// 	log.Warn().Stringer("t", time.Since(s)).Msg("sent pressure")
 			// }
+
+			if res.StatusCode == 552 && res.Status == "Proxy Pool Exhausted" {
+				res.Proto = res.Request.Proto
+				res.ProtoMajor = res.Request.ProtoMajor
+				res.ProtoMinor = res.Request.ProtoMinor
+			}
 			return res, nil
 		}
 	}

@@ -178,8 +178,10 @@ func (srv *HttpProxyServer) rewrapRequest(log zerolog.Logger, scheme string, req
 			RawQuery: req.URL.RawQuery,
 			Scheme:   scheme,
 		},
-		Header: req.Header,
-		Proto:  req.Proto,
+		Header:     req.Header,
+		Proto:      req.Proto,
+		ProtoMajor: req.ProtoMajor,
+		ProtoMinor: req.ProtoMinor,
 	}).WithContext(app.Log.To(req.Context(), log))
 }
 
